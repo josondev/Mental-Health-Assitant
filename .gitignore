@@ -16,3 +16,5 @@ __pycache__/
 evaluation/rag_predictions.jsonl
 evaluation/rag_eval_results.json
 evaluation/rag_eval_results_fixed.json
+
+streamlit/secrets.toml
