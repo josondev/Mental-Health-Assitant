@@ -9,76 +9,90 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_pinecone import PineconeVectorStore
 
-# Replace your current st.markdown styling block with this updated CSS:
+# 1. Page config MUST be the first Streamlit command
+st.set_page_config(
+    page_title="Mental Health Assistant",
+    page_icon="🧠",
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
+
+# 2. Custom CSS Block
 st.markdown("""
 <style>
-/* 1. Page Background */
+/* 1. Global Background */
 .stApp { 
     background: radial-gradient(circle at 10% 0%, #1d4ed8 0, transparent 40%), 
                 radial-gradient(circle at 90% 10%, #7c3aed 0, transparent 35%), 
                 #080b14 !important; 
 }
 
-/* 2. Push content down and center it nicely */
-.block-container { 
-    max-width: 800px !important; 
-    padding-top: 5rem !important; /* Pushes header down away from the top edge */
-    padding-bottom: 7rem !important;
-    margin: 0 auto !important;
+/* 2. Target ALL Streamlit container variations to force center alignment & top spacing */
+.main .block-container,
+[data-testid="stMainBlockContainer"],
+.stMainBlockContainer { 
+    max-width: 850px !important; 
+    padding-top: 5rem !important;
+    padding-bottom: 6rem !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
-/* 3. Hide Streamlit's default header padding bar */
-header[data-testid="stHeader"] {
-    background: transparent !important;
+/* 3. Ensure the app layout centers content cleanly */
+[data-testid="stAppViewContainer"] > .main {
+    display: flex !important;
+    justify-content: center !important;
 }
 
-/* 4. Custom Hero Header Container */
-.hero-header {
-    text-align: center;
-    padding: 2.2rem 2rem;
-    margin-bottom: 2.5rem;
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(124, 58, 237, 0.15));
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 24px;
-    backdrop-filter: blur(16px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+/* 4. Custom Header Card Styling */
+.custom-header {
+    text-align: center !important;
+    padding: 2.5rem 2rem !important;
+    margin: 0 auto 2.5rem auto !important;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(124, 58, 237, 0.2)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 20px !important;
+    backdrop-filter: blur(12px) !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
-.hero-title {
+.custom-header h1 {
     color: #ffffff !important;
-    font-size: 2.4rem !important;
+    font-size: 2.3rem !important;
     font-weight: 700 !important;
-    letter-spacing: -0.02em;
-    margin-bottom: 0.6rem;
-    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    margin: 0 0 0.6rem 0 !important;
+    padding: 0 !important;
+    letter-spacing: -0.02em !important;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.4) !important;
 }
 
-.hero-subtitle {
+.custom-header p {
     color: #cbd5e1 !important;
     font-size: 1.05rem !important;
-    font-weight: 400 !important;
-    max-width: 500px;
-    margin: 0 auto;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
-/* 5. Chat Messages styling */
+/* 5. Chat Messages Styling */
 div[data-testid="stChatMessage"] { 
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    border-radius: 18px; 
-    padding: 1.25rem 1.4rem; 
-    margin: 1rem 0; 
-    background: rgba(15, 23, 42, 0.85); 
-    backdrop-filter: blur(10px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25); 
+    border: 1px solid rgba(255, 255, 255, 0.12) !important; 
+    border-radius: 16px !important; 
+    padding: 1.2rem 1.4rem !important; 
+    margin: 1rem 0 !important; 
+    background: rgba(15, 23, 42, 0.85) !important; 
+    backdrop-filter: blur(8px) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important; 
 }
 
 div[data-testid="stChatMessageContent"] { 
     color: #f8fafc !important; 
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
 }
 
-/* 6. Input box styling */
+/* 6. Chat Input Styling */
 div[data-testid="stChatInput"] textarea {
     color: #ffffff !important;
     background-color: rgba(15, 23, 42, 0.9) !important;
@@ -86,8 +100,8 @@ div[data-testid="stChatInput"] textarea {
 
 /* 7. Sidebar text color fix */
 section[data-testid="stSidebar"] { 
-    background: rgba(8, 11, 20, 0.96); 
-    border-right: 1px solid rgba(255, 255, 255, 0.1); 
+    background: rgba(8, 11, 20, 0.96) !important; 
+    border-right: 1px solid rgba(255, 255, 255, 0.1) !important; 
 }
 
 section[data-testid="stSidebar"] p, 
@@ -97,9 +111,9 @@ section[data-testid="stSidebar"] li {
 </style>
 """, unsafe_allow_html=True)
 
-# --- Replace st.title & st.caption with this block ---
+# 3. Render Custom Centered Hero Header
 st.markdown("""
-<div class="hero-card">
+<div class="custom-header">
     <h1>🧠 Mental Health Assistant</h1>
     <p>Your compassionate AI companion for mental health support</p>
 </div>
@@ -218,10 +232,6 @@ def initialize_chatbot():
 if st.session_state.rag_chain is None:
     with st.spinner("🔄 Loading AI assistant..."):
         st.session_state.rag_chain = initialize_chatbot()
-
-# Header
-st.title("🧠 Mental Health Assistant")
-st.caption("Your compassionate AI companion for mental health support")
 
 # Sidebar
 with st.sidebar:
