@@ -9,14 +9,6 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_pinecone import PineconeVectorStore
 
-# Page config
-st.set_page_config(
-    page_title="Mental Health Assistant",
-    page_icon="🧠",
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
-
 # Replace your current st.markdown styling block with this updated CSS:
 st.markdown("""
 <style>
