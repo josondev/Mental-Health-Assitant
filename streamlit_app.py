@@ -12,62 +12,64 @@ from langchain_pinecone import PineconeVectorStore
 # Replace your current st.markdown styling block with this updated CSS:
 st.markdown("""
 <style>
-/* App background */
+/* 1. Page Background */
 .stApp { 
     background: radial-gradient(circle at 10% 0%, #1d4ed8 0, transparent 40%), 
                 radial-gradient(circle at 90% 10%, #7c3aed 0, transparent 35%), 
-                #080b14; 
+                #080b14 !important; 
 }
 
-/* Center main layout and adjust spacing */
+/* 2. Push content down and center it nicely */
 .block-container { 
-    max-width: 850px !important; 
-    padding-top: 3.5rem !important; 
+    max-width: 800px !important; 
+    padding-top: 5rem !important; /* Pushes header down away from the top edge */
     padding-bottom: 7rem !important;
+    margin: 0 auto !important;
+}
+
+/* 3. Hide Streamlit's default header padding bar */
+header[data-testid="stHeader"] {
+    background: transparent !important;
+}
+
+/* 4. Custom Hero Header Container */
+.hero-header {
+    text-align: center;
+    padding: 2.2rem 2rem;
+    margin-bottom: 2.5rem;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(124, 58, 237, 0.15));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+.hero-title {
+    color: #ffffff !important;
+    font-size: 2.4rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.6rem;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.hero-subtitle {
+    color: #cbd5e1 !important;
+    font-size: 1.05rem !important;
+    font-weight: 400 !important;
+    max-width: 500px;
     margin: 0 auto;
 }
 
-/* Hero Header Card Container */
-.hero-card {
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(124, 58, 237, 0.20));
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 2rem;
-    text-align: center;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
-}
-
-.hero-card h1 {
-    color: #ffffff !important;
-    font-size: 2.3rem !important;
-    font-weight: 700 !important;
-    margin: 0 0 0.5rem 0 !important;
-    letter-spacing: -0.02em;
-}
-
-.hero-card p {
-    color: #cbd5e1 !important;
-    font-size: 1.05rem !important;
-    margin: 0 !important;
-}
-
-/* Base text color overrides */
-html, body, [class*="css"] {
-    color: #f1f5f9 !important;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-/* Chat Message Box Container */
+/* 5. Chat Messages styling */
 div[data-testid="stChatMessage"] { 
-    border: 1px solid rgba(255, 255, 255, 0.12); 
-    border-radius: 16px; 
-    padding: 1.2rem 1.4rem; 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    border-radius: 18px; 
+    padding: 1.25rem 1.4rem; 
     margin: 1rem 0; 
-    background: rgba(15, 23, 42, 0.82); 
-    backdrop-filter: blur(8px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); 
+    background: rgba(15, 23, 42, 0.85); 
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25); 
 }
 
 div[data-testid="stChatMessageContent"] { 
@@ -76,7 +78,13 @@ div[data-testid="stChatMessageContent"] {
     line-height: 1.6;
 }
 
-/* Sidebar styling */
+/* 6. Input box styling */
+div[data-testid="stChatInput"] textarea {
+    color: #ffffff !important;
+    background-color: rgba(15, 23, 42, 0.9) !important;
+}
+
+/* 7. Sidebar text color fix */
 section[data-testid="stSidebar"] { 
     background: rgba(8, 11, 20, 0.96); 
     border-right: 1px solid rgba(255, 255, 255, 0.1); 
@@ -85,12 +93,6 @@ section[data-testid="stSidebar"] {
 section[data-testid="stSidebar"] p, 
 section[data-testid="stSidebar"] li {
     color: #cbd5e1 !important;
-}
-
-/* Chat Input Styling */
-div[data-testid="stChatInput"] textarea {
-    color: #ffffff !important;
-    background-color: rgba(15, 23, 42, 0.9) !important;
 }
 </style>
 """, unsafe_allow_html=True)
