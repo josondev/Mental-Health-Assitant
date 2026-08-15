@@ -1,4 +1,4 @@
-# Mental Health RAG Chatbot with Streamlit Interface
+# Mental Health RAG Assistant with Streamlit Interface
 
 This project implements a conversational Retrieval Augmented Generation (RAG) Assistant focused on mental health topics. It utilizes a knowledge base stored in a Pinecone vector database, leverages Google's Gemini model for language understanding and generation, and provides a user-friendly chat interface built with Streamlit. The chatbot can understand conversational context, retrieve relevant information from its database, and stream responses back to the user.
 
