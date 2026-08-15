@@ -17,38 +17,54 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for high contrast & readable typography
+# Replace your current st.markdown styling block with this updated CSS:
 st.markdown("""
 <style>
 /* App background */
 .stApp { 
-    background: radial-gradient(circle at 10% 0%, #1d4ed8 0, transparent 35%), 
-                radial-gradient(circle at 90% 10%, #7c3aed 0, transparent 32%), 
+    background: radial-gradient(circle at 10% 0%, #1d4ed8 0, transparent 40%), 
+                radial-gradient(circle at 90% 10%, #7c3aed 0, transparent 35%), 
                 #080b14; 
 }
 
-/* Layout container */
+/* Center main layout and adjust spacing */
 .block-container { 
-    max-width: 900px; 
-    padding-top: 2rem; 
-    padding-bottom: 7rem; 
+    max-width: 850px !important; 
+    padding-top: 3.5rem !important; 
+    padding-bottom: 7rem !important;
+    margin: 0 auto;
+}
+
+/* Hero Header Card Container */
+.hero-card {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(124, 58, 237, 0.20));
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+}
+
+.hero-card h1 {
+    color: #ffffff !important;
+    font-size: 2.3rem !important;
+    font-weight: 700 !important;
+    margin: 0 0 0.5rem 0 !important;
+    letter-spacing: -0.02em;
+}
+
+.hero-card p {
+    color: #cbd5e1 !important;
+    font-size: 1.05rem !important;
+    margin: 0 !important;
 }
 
 /* Base text color overrides */
 html, body, [class*="css"] {
     color: #f1f5f9 !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-/* Titles and Headers */
-h1, h2, h3, h4, h5, h6 {
-    color: #ffffff !important;
-    font-weight: 600 !important;
-}
-
-stCaption, .small-muted { 
-    color: #94a3b8 !important; 
-    font-size: 0.85rem; 
 }
 
 /* Chat Message Box Container */
@@ -62,35 +78,10 @@ div[data-testid="stChatMessage"] {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); 
 }
 
-/* Chat Message Content Typography */
 div[data-testid="stChatMessageContent"] { 
     color: #f8fafc !important; 
     font-size: 1rem;
     line-height: 1.6;
-}
-
-div[data-testid="stChatMessageContent"] p {
-    color: #f8fafc !important;
-    margin-bottom: 0.5rem;
-}
-
-div[data-testid="stChatMessageContent"] li {
-    color: #e2e8f0 !important;
-}
-
-div[data-testid="stChatMessageContent"] h1, 
-div[data-testid="stChatMessageContent"] h2, 
-div[data-testid="stChatMessageContent"] h3 { 
-    color: #ffffff !important; 
-    margin-top: 0.8rem; 
-    margin-bottom: 0.4rem;
-}
-
-div[data-testid="stChatMessageContent"] code { 
-    color: #ddd6fe !important; 
-    background: rgba(124, 58, 237, 0.2);
-    padding: 2px 6px;
-    border-radius: 4px;
 }
 
 /* Sidebar styling */
@@ -105,22 +96,19 @@ section[data-testid="stSidebar"] li {
 }
 
 /* Chat Input Styling */
-div[data-testid="stChatInput"] {
-    border-radius: 12px;
-}
-
 div[data-testid="stChatInput"] textarea {
     color: #ffffff !important;
     background-color: rgba(15, 23, 42, 0.9) !important;
 }
-
-/* Expander styling */
-div[data-testid="stExpander"] { 
-    border: 1px solid rgba(255, 255, 255, 0.12); 
-    border-radius: 12px; 
-    background: rgba(15, 23, 42, 0.5);
-}
 </style>
+""", unsafe_allow_html=True)
+
+# --- Replace st.title & st.caption with this block ---
+st.markdown("""
+<div class="hero-card">
+    <h1>🧠 Mental Health Assistant</h1>
+    <p>Your compassionate AI companion for mental health support</p>
+</div>
 """, unsafe_allow_html=True)
 
 # Initialize session state
