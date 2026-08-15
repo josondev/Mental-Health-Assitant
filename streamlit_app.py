@@ -13,7 +13,6 @@ from langchain_pinecone import PineconeVectorStore
 st.set_page_config(
     page_title="Mental Health Assistant",
     page_icon="🧠",
-    layout="centered",
     initial_sidebar_state="collapsed"
 )
 
