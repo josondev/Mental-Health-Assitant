@@ -17,56 +17,24 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+
 st.markdown("""
 <style>
-  /* App background */
-  .stApp {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  }
-
-  section.main > div {
-    max-width: 100%;
-    padding: 1rem;
-  }
-
-  /* Base chat message box styling (common) */
-  div[data-testid="stChatMessage"]{
-    border-radius: 10px;
-    padding: 1rem;
-    margin: 0.5rem 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-  }
-
-  /* DARK MODE */
-  @media (prefers-color-scheme: dark) {
-    div[data-testid="stChatMessage"]{
-      background: #0b0b0b !important;
-    }
-
-    /* Target the actual rendered text inside chat messages */
-    div[data-testid="stChatMessageContent"],
-    div[data-testid="stChatMessageContent"] p,
-    div[data-testid="stChatMessageContent"] li,
-    div[data-testid="stChatMessageContent"] span,
-    div[data-testid="stChatMessageContent"] div{
-      color: #f7fafc !important;
-    }
-  }
-
-  /* LIGHT MODE */
-  @media (prefers-color-scheme: light) {
-    div[data-testid="stChatMessage"]{
-      background: #ffffff !important;
-    }
-
-    div[data-testid="stChatMessageContent"],
-    div[data-testid="stChatMessageContent"] p,
-    div[data-testid="stChatMessageContent"] li,
-    div[data-testid="stChatMessageContent"] span,
-    div[data-testid="stChatMessageContent"] div{
-      color: #111827 !important;
-    }
-  }
+.stApp { background: radial-gradient(circle at 10% 0%, #1d4ed8 0, transparent 35%), radial-gradient(circle at 90% 10%, #7c3aed 0, transparent 32%), #080b14; }
+.block-container { max-width: 1180px; padding-top: 2rem; padding-bottom: 7rem; }
+.hero { padding: 28px 30px; border-radius: 24px; margin-bottom: 22px; background: linear-gradient(135deg, rgba(37,99,235,.30), rgba(124,58,237,.25)); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 18px 60px rgba(0,0,0,.25); }
+.hero h1 { margin: 0; color: #fff; font-size: 2.25rem; letter-spacing: -.04em; }
+.hero p { margin: 8px 0 0; color: #cbd5e1; font-size: 1rem; }
+.status-pill { display:inline-block; padding:5px 11px; border-radius:999px; background:rgba(255,255,255,.10); color:#e2e8f0; font-size:.78rem; border:1px solid rgba(255,255,255,.12); }
+section[data-testid="stSidebar"] { background: rgba(8,11,20,.96); border-right: 1px solid rgba(255,255,255,.08); }
+section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 { color:#f8fafc; }
+div[data-testid="stChatMessage"] { border: 1px solid rgba(255,255,255,.09); border-radius: 20px; padding: 1.15rem 1.25rem; margin: .8rem 0; background: rgba(15,23,42,.76); box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+div[data-testid="stChatMessageContent"] { color:#e5e7eb; }
+div[data-testid="stChatMessageContent"] h1, div[data-testid="stChatMessageContent"] h2, div[data-testid="stChatMessageContent"] h3 { color:#fff; margin-top:.5rem; }
+div[data-testid="stChatMessageContent"] table { border-radius:12px; overflow:hidden; }
+div[data-testid="stChatMessageContent"] code { color:#c4b5fd; }
+div[data-testid="stExpander"] { border:1px solid rgba(255,255,255,.09); border-radius:14px; }
+.small-muted { color:#94a3b8; font-size:.82rem; }
 </style>
 """, unsafe_allow_html=True)
 
