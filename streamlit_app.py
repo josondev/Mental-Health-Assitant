@@ -1,205 +1,320 @@
-import streamlit as st
-import os
-from langchain_huggingface import HuggingFaceEmbeddings
-from pinecone import Pinecone, ServerlessSpec, PineconeApiException
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import HumanMessage, AIMessage
-from langchain.chains import create_history_aware_retriever, create_retrieval_chain
-from langchain_pinecone import PineconeVectorStore
+"""
+Streamlit UI for the Mental Health RAG chatbot — dark theme.
 
-# Page config
+Run with:
+    streamlit run streamlit_app.py
+
+Assumes src/app.py (your pasted script) sits at Mental-Health-Assitant/src/app.py,
+and that PINECONE_API_KEY, PINECONE_CLOUD, PINECONE_REGION, and
+GOOGLE_API_KEY are set in a .env file or the environment — same as
+your original CLI script expected.
+"""
+
+import streamlit as st
+from langchain_core.messages import HumanMessage, AIMessage
+
+# Heavy imports (Pinecone client, embeddings model, LLM, chain construction)
+# all happen at import time inside src/app.py, exactly like your
+# original script — so importing this module IS the "startup cost."
+#
+# This import assumes you run `streamlit run streamlit_app.py` from the
+# repo root (Mental-Health-Assitant/), with src/ as a subfolder next to
+# this file. Python 3 treats src/ as an implicit namespace package, so
+# no src/__init__.py is required.
+from src import app as backend
+
+
 st.set_page_config(
-    page_title="Mental Health Assistant",
-    page_icon="🧠",
-    layout="wide"
+    page_title="Steady — Mental Health RAG Assistant",
+    page_icon="◐",
+    layout="centered",
 )
 
-# Initialize session state
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "rag_chain" not in st.session_state:
-    st.session_state.rag_chain = None
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+# ---------------------------------------------------------------------
+# Theme
+# ---------------------------------------------------------------------
+# Palette (named, deliberate — not the generic near-black+acid-green combo):
+#   ink        #14171A  page background, warm-toned near-black, not pure #000
+#   surface    #1C2023  card / bubble background
+#   surface-2  #23282B  secondary surface (sidebar, source panel)
+#   line       #2E3438  hairline borders
+#   text       #E9E6E0  primary text, warm off-white (not stark #FFFFFF)
+#   muted      #9B9791  secondary text
+#   sage       #7FA187  accent — calm, grounded, not alarm-colored
+#   clay       #C98B5D  secondary accent, used sparingly (user bubble edge)
+#
+# Type:
+#   display -> "Fraunces"     (warm humanist serif, used only for the title)
+#   body    -> "Inter"        (clean, high-legibility sans)
+#   mono    -> "JetBrains Mono" (source/doc-id chips)
+#
+# Note: Streamlit's internal CSS classes and data-testid attributes are
+# undocumented and can change between Streamlit versions. This styling
+# was written against a recent-ish Streamlit release from memory — if a
+# section doesn't visually apply after you upgrade/downgrade Streamlit,
+# open devtools, find the new attribute name, and swap it in below.
 
-@st.cache_resource
-def initialize_chatbot():
-    """Initialize the RAG chatbot (cached to avoid reloading)"""
-    try:
-        # Get API keys from Streamlit secrets
-        pinecone_key = st.secrets.get("PINECONE_API_KEY", os.getenv("PINECONE_API_KEY"))
-        google_key = st.secrets.get("GOOGLE_API_KEY", os.getenv("GOOGLE_API_KEY"))
-        pinecone_cloud = st.secrets.get("PINECONE_CLOUD", os.getenv("PINECONE_CLOUD", "aws"))
-        pinecone_region = st.secrets.get("PINECONE_REGION", os.getenv("PINECONE_REGION", "us-east-1"))
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-        if not pinecone_key or not google_key:
-            st.error("⚠️ API keys not found. Please add them to Streamlit secrets.")
-            st.stop()
+    :root {
+        --ink: #14171A;
+        --surface: #1C2023;
+        --surface-2: #23282B;
+        --line: #2E3438;
+        --text: #E9E6E0;
+        --muted: #9B9791;
+        --sage: #7FA187;
+        --clay: #C98B5D;
+    }
 
-        # Initialize Pinecone
-        pc = Pinecone(api_key=pinecone_key)
-        spec = ServerlessSpec(cloud=pinecone_cloud, region=pinecone_region)
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
 
-        # Initialize embeddings
-        embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+        background-color: var(--ink);
+    }
 
-        # Pinecone index
-        index_name = "medical-chatbot"
-        try:
-            pc.Index(index_name).describe_index_stats()
-        except PineconeApiException:
-            pc.create_index(
-                name=index_name,
-                dimension=384,
-                metric="cosine",
-                spec=spec
-            )
+    [data-testid="stSidebar"] {
+        background-color: var(--surface-2);
+        border-right: 1px solid var(--line);
+    }
+    [data-testid="stSidebar"] * {
+        color: var(--text) !important;
+    }
 
-        # Vector store
-        vectorstore = PineconeVectorStore.from_existing_index(
-            index_name=index_name,
-            embedding=embeddings
-        )
-        base_retriever = vectorstore.as_retriever(
-            search_type="similarity",
-            search_kwargs={"k": 5}
-        )
+    /* Title block */
+    .steady-title {
+        font-family: 'Fraunces', serif;
+        font-weight: 600;
+        font-size: 2.1rem;
+        color: var(--text);
+        letter-spacing: -0.01em;
+        margin-bottom: 0.15rem;
+    }
+    .steady-accent {
+        color: var(--sage);
+    }
+    .steady-rule {
+        height: 1px;
+        background: linear-gradient(90deg, var(--sage) 0%, var(--line) 40%);
+        border: none;
+        margin: 0.6rem 0 1.4rem 0;
+    }
+    .steady-caption {
+        color: var(--muted);
+        font-size: 0.92rem;
+        margin-bottom: 1.5rem;
+    }
 
-        # Initialize LLM
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash-lite",
-            temperature=0.1,
-            max_tokens=1024,
-            api_key=google_key,
-        )
+    /* Chat bubbles */
+    [data-testid="stChatMessage"] {
+        background-color: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 0.4rem 0.2rem;
+        margin-bottom: 0.9rem;
+    }
+    [data-testid="stChatMessage"] p,
+    [data-testid="stChatMessage"] li,
+    [data-testid="stChatMessage"] span {
+        color: var(--text) !important;
+    }
+    /* user turns get a thin clay left-edge, assistant turns a sage one */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+        border-left: 2px solid var(--clay);
+    }
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {
+        border-left: 2px solid var(--sage);
+    }
 
-        # Contextualize question prompt
-        contextualize_prompt = (
-            "Given a chat history and the latest user question "
-            "which might reference context in the chat history, "
-            "formulate a standalone question which can be understood "
-            "without the chat history. Do NOT answer the question, "
-            "just reformulate it if needed and otherwise return it as is."
-        )
+    /* Chat input */
+    [data-testid="stChatInput"] {
+        background-color: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+    }
+    [data-testid="stChatInput"] textarea {
+        color: var(--text) !important;
+    }
 
-        contextualized_q_prompt = ChatPromptTemplate.from_messages([
-            ("system", contextualize_prompt),
-            MessagesPlaceholder("chat_history"),
-            ("human", "{input}")
-        ])
+    /* Buttons */
+    .stButton > button {
+        background-color: var(--surface-2);
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        transition: border-color 0.15s ease;
+    }
+    .stButton > button:hover {
+        border-color: var(--sage);
+        color: var(--sage);
+    }
 
-        history_aware_retriever = create_history_aware_retriever(
-            llm=llm,
-            retriever=base_retriever,
-            prompt=contextualized_q_prompt,
-        )
+    /* Expander (sources panel) */
+    [data-testid="stExpander"] {
+        background-color: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+    }
+    [data-testid="stExpander"] summary {
+        color: var(--muted) !important;
+        font-size: 0.85rem;
+    }
+    [data-testid="stExpander"] p, [data-testid="stExpander"] div {
+        color: var(--text) !important;
+    }
+    .source-chip {
+        display: inline-block;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        color: var(--sage);
+        background-color: rgba(127, 161, 135, 0.12);
+        border: 1px solid rgba(127, 161, 135, 0.35);
+        border-radius: 6px;
+        padding: 1px 8px;
+        margin-bottom: 4px;
+    }
 
-        # QA prompt
-        system_prompt = (
-            "You are a compassionate mental health assistant. "
-            "Use the following context to answer the question. "
-            "Focus ONLY on mental health topics. "
-            "If you don't know, say so. Be empathetic and supportive."
-            "\n\n{context}"
-        )
+    /* Focus visibility (accessibility floor — not skipped for the theme) */
+    *:focus-visible {
+        outline: 2px solid var(--sage) !important;
+        outline-offset: 2px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-        qa_prompt = ChatPromptTemplate.from_messages([
-            ("system", system_prompt),
-            MessagesPlaceholder("chat_history"),
-            ("human", "{input}"),
-        ])
-
-        question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
-
-        # Final RAG chain
-        rag_chain = create_retrieval_chain(
-            retriever=history_aware_retriever,
-            combine_docs_chain=question_answer_chain,
-        )
-
-        return rag_chain
-
-    except Exception as e:
-        st.error(f"Error initializing chatbot: {e}")
-        return None
-
-# Initialize chatbot
-if st.session_state.rag_chain is None:
-    with st.spinner("🔄 Loading AI assistant..."):
-        st.session_state.rag_chain = initialize_chatbot()
-
+# ---------------------------------------------------------------------
 # Header
-st.title("🧠 Mental Health Assistant")
-st.caption("Your compassionate AI companion for mental health support")
+# ---------------------------------------------------------------------
+st.markdown(
+    '<div class="steady-title">Steady <span class="steady-accent">◐</span></div>',
+    unsafe_allow_html=True,
+)
+st.markdown('<hr class="steady-rule">', unsafe_allow_html=True)
+st.markdown(
+    '<div class="steady-caption">Answers are grounded only in your Pinecone-indexed '
+    "knowledge base (index: <code>medical-chatbot</code>). Not a substitute for "
+    "professional care.</div>",
+    unsafe_allow_html=True,
+)
 
+# ---------------------------------------------------------------------
+# Session state
+# ---------------------------------------------------------------------
+if "display_history" not in st.session_state:
+    st.session_state.display_history = []  # list[dict]
+if "lc_history" not in st.session_state:
+    st.session_state.lc_history = []  # list[HumanMessage | AIMessage]
+
+# ---------------------------------------------------------------------
 # Sidebar
+# ---------------------------------------------------------------------
 with st.sidebar:
-    st.header("ℹ️ About")
-    st.write("""
-    This AI assistant provides mental health support using:
-    - **RAG** (Retrieval Augmented Generation)
-    - **Google Gemini** for natural language understanding
-    - **Pinecone** for knowledge retrieval
+    st.markdown("**Session**")
+    st.write(f"Turns so far: **{len(st.session_state.lc_history) // 2}**")
 
-    💡 **Tips:**
-    - Ask questions about stress, anxiety, depression
-    - The AI remembers your conversation context
-    - This is not a replacement for professional help
-    """)
-
-    st.divider()
-
-    if st.button("🗑️ Clear Chat History"):
-        st.session_state.messages = []
-        st.session_state.chat_history = []
+    if st.button("Clear conversation", use_container_width=True):
+        st.session_state.display_history = []
+        st.session_state.lc_history = []
         st.rerun()
 
     st.divider()
+    st.caption(
+        "Streams from `rag_chain.stream(...)` in src/app.py. If retrieval "
+        "or the LLM call errors (bad API key, missing Pinecone index, etc.), "
+        "the error shows inline in the chat — check your `.env` values first."
+    )
 
-    st.caption("⚠️ **Disclaimer:** This is an AI assistant. For emergencies, contact professional help immediately.")
+# ---------------------------------------------------------------------
+# Render existing conversation
+# ---------------------------------------------------------------------
+for turn in st.session_state.display_history:
+    avatar = "🧑" if turn["role"] == "user" else "◐"
+    with st.chat_message(turn["role"], avatar=avatar):
+        st.markdown(turn["content"])
+        if turn.get("sources"):
+            with st.expander(f"Sources ({len(turn['sources'])})"):
+                for i, doc in enumerate(turn["sources"], start=1):
+                    st.markdown(
+                        f'<span class="source-chip">{doc["doc_id"]}</span>',
+                        unsafe_allow_html=True,
+                    )
+                    preview = doc.get("text", "")
+                    st.text(preview[:500] + ("..." if len(preview) > 500 else ""))
 
-# Display chat messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
+# ---------------------------------------------------------------------
 # Chat input
-if prompt := st.chat_input("How can I help you today?"):
-    # Check if chatbot is initialized
-    if st.session_state.rag_chain is None:
-        st.error("⚠️ Chatbot not initialized. Please check your API keys.")
-        st.stop()
+# ---------------------------------------------------------------------
+user_question = st.chat_input("Ask a question related to mental health...")
 
-    # Add user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+if user_question:
+    st.session_state.display_history.append({"role": "user", "content": user_question})
+    with st.chat_message("user", avatar="🧑"):
+        st.markdown(user_question)
 
-    # Get bot response
-    with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            try:
-                # Invoke RAG chain
-                result = st.session_state.rag_chain.invoke({
-                    "input": prompt,
-                    "chat_history": st.session_state.chat_history
-                })
+    with st.chat_message("assistant", avatar="◐"):
+        placeholder = st.empty()
+        full_text = ""
+        sources_raw = []
+        error = None
 
-                response = result.get("answer", "I'm sorry, I couldn't generate a response.")
+        try:
+            for chunk in backend.rag_chain.stream(
+                {
+                    "input": user_question,
+                    "chat_history": st.session_state.lc_history,
+                }
+            ):
+                if "context" in chunk and chunk["context"]:
+                    sources_raw = chunk["context"]
+                if "answer" in chunk and chunk["answer"] is not None:
+                    full_text += chunk["answer"]
+                    placeholder.markdown(full_text + "▌")
 
-                # Display response
-                st.markdown(response)
+            placeholder.markdown(full_text if full_text else "_(no answer returned)_")
 
-                # Update chat history
-                st.session_state.chat_history.append(HumanMessage(content=prompt))
-                st.session_state.chat_history.append(AIMessage(content=response))
+        except Exception as e:
+            error = str(e)
+            placeholder.error(
+                "Something went wrong calling the RAG chain. This usually means "
+                "a missing/invalid API key, an unreachable Pinecone index, or a "
+                "LangChain/library version mismatch — verify your `.env` and "
+                f"installed package versions.\n\nRaw error: `{error}`"
+            )
 
-                # Add to messages
-                st.session_state.messages.append({"role": "assistant", "content": response})
+        if error is None:
+            st.session_state.lc_history.append(HumanMessage(content=user_question))
+            st.session_state.lc_history.append(AIMessage(content=full_text))
 
-            except Exception as e:
-                error_msg = f"Sorry, I encountered an error: {str(e)}"
-                st.error(error_msg)
-                st.session_state.messages.append({"role": "assistant", "content": error_msg})
+            sources_for_display = [
+                {
+                    "doc_id": backend.get_document_id(d),
+                    "text": d.page_content,
+                    "metadata": d.metadata or {},
+                }
+                for d in sources_raw
+            ]
+
+            st.session_state.display_history.append(
+                {
+                    "role": "assistant",
+                    "content": full_text,
+                    "sources": sources_for_display,
+                }
+            )
+
+            if sources_for_display:
+                with st.expander(f"Sources ({len(sources_for_display)})"):
+                    for i, doc in enumerate(sources_for_display, start=1):
+                        st.markdown(
+                            f'<span class="source-chip">{doc["doc_id"]}</span>',
+                            unsafe_allow_html=True,
+                        )
+                        preview = doc["text"]
+                        st.text(preview[:500] + ("..." if len(preview) > 500 else ""))
