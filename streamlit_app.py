@@ -17,24 +17,109 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-
+# Custom CSS for high contrast & readable typography
 st.markdown("""
 <style>
-.stApp { background: radial-gradient(circle at 10% 0%, #1d4ed8 0, transparent 35%), radial-gradient(circle at 90% 10%, #7c3aed 0, transparent 32%), #080b14; }
-.block-container { max-width: 1180px; padding-top: 2rem; padding-bottom: 7rem; }
-.hero { padding: 28px 30px; border-radius: 24px; margin-bottom: 22px; background: linear-gradient(135deg, rgba(37,99,235,.30), rgba(124,58,237,.25)); border: 1px solid rgba(255,255,255,.12); box-shadow: 0 18px 60px rgba(0,0,0,.25); }
-.hero h1 { margin: 0; color: #fff; font-size: 2.25rem; letter-spacing: -.04em; }
-.hero p { margin: 8px 0 0; color: #cbd5e1; font-size: 1rem; }
-.status-pill { display:inline-block; padding:5px 11px; border-radius:999px; background:rgba(255,255,255,.10); color:#e2e8f0; font-size:.78rem; border:1px solid rgba(255,255,255,.12); }
-section[data-testid="stSidebar"] { background: rgba(8,11,20,.96); border-right: 1px solid rgba(255,255,255,.08); }
-section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 { color:#f8fafc; }
-div[data-testid="stChatMessage"] { border: 1px solid rgba(255,255,255,.09); border-radius: 20px; padding: 1.15rem 1.25rem; margin: .8rem 0; background: rgba(15,23,42,.76); box-shadow: 0 10px 30px rgba(0,0,0,.18); }
-div[data-testid="stChatMessageContent"] { color:#e5e7eb; }
-div[data-testid="stChatMessageContent"] h1, div[data-testid="stChatMessageContent"] h2, div[data-testid="stChatMessageContent"] h3 { color:#fff; margin-top:.5rem; }
-div[data-testid="stChatMessageContent"] table { border-radius:12px; overflow:hidden; }
-div[data-testid="stChatMessageContent"] code { color:#c4b5fd; }
-div[data-testid="stExpander"] { border:1px solid rgba(255,255,255,.09); border-radius:14px; }
-.small-muted { color:#94a3b8; font-size:.82rem; }
+/* App background */
+.stApp { 
+    background: radial-gradient(circle at 10% 0%, #1d4ed8 0, transparent 35%), 
+                radial-gradient(circle at 90% 10%, #7c3aed 0, transparent 32%), 
+                #080b14; 
+}
+
+/* Layout container */
+.block-container { 
+    max-width: 900px; 
+    padding-top: 2rem; 
+    padding-bottom: 7rem; 
+}
+
+/* Base text color overrides */
+html, body, [class*="css"] {
+    color: #f1f5f9 !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Titles and Headers */
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+stCaption, .small-muted { 
+    color: #94a3b8 !important; 
+    font-size: 0.85rem; 
+}
+
+/* Chat Message Box Container */
+div[data-testid="stChatMessage"] { 
+    border: 1px solid rgba(255, 255, 255, 0.12); 
+    border-radius: 16px; 
+    padding: 1.2rem 1.4rem; 
+    margin: 1rem 0; 
+    background: rgba(15, 23, 42, 0.82); 
+    backdrop-filter: blur(8px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); 
+}
+
+/* Chat Message Content Typography */
+div[data-testid="stChatMessageContent"] { 
+    color: #f8fafc !important; 
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+div[data-testid="stChatMessageContent"] p {
+    color: #f8fafc !important;
+    margin-bottom: 0.5rem;
+}
+
+div[data-testid="stChatMessageContent"] li {
+    color: #e2e8f0 !important;
+}
+
+div[data-testid="stChatMessageContent"] h1, 
+div[data-testid="stChatMessageContent"] h2, 
+div[data-testid="stChatMessageContent"] h3 { 
+    color: #ffffff !important; 
+    margin-top: 0.8rem; 
+    margin-bottom: 0.4rem;
+}
+
+div[data-testid="stChatMessageContent"] code { 
+    color: #ddd6fe !important; 
+    background: rgba(124, 58, 237, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Sidebar styling */
+section[data-testid="stSidebar"] { 
+    background: rgba(8, 11, 20, 0.96); 
+    border-right: 1px solid rgba(255, 255, 255, 0.1); 
+}
+
+section[data-testid="stSidebar"] p, 
+section[data-testid="stSidebar"] li {
+    color: #cbd5e1 !important;
+}
+
+/* Chat Input Styling */
+div[data-testid="stChatInput"] {
+    border-radius: 12px;
+}
+
+div[data-testid="stChatInput"] textarea {
+    color: #ffffff !important;
+    background-color: rgba(15, 23, 42, 0.9) !important;
+}
+
+/* Expander styling */
+div[data-testid="stExpander"] { 
+    border: 1px solid rgba(255, 255, 255, 0.12); 
+    border-radius: 12px; 
+    background: rgba(15, 23, 42, 0.5);
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -50,14 +135,14 @@ if "chat_history" not in st.session_state:
 def initialize_chatbot():
     """Initialize the RAG chatbot (cached to avoid reloading)"""
     try:
-        # Get API keys from Streamlit secrets
+        # Get API keys from Streamlit secrets or env vars
         pinecone_key = st.secrets.get("PINECONE_API_KEY", os.getenv("PINECONE_API_KEY"))
         google_key = st.secrets.get("GOOGLE_API_KEY", os.getenv("GOOGLE_API_KEY"))
         pinecone_cloud = st.secrets.get("PINECONE_CLOUD", os.getenv("PINECONE_CLOUD", "aws"))
         pinecone_region = st.secrets.get("PINECONE_REGION", os.getenv("PINECONE_REGION", "us-east-1"))
 
         if not pinecone_key or not google_key:
-            st.error("⚠️ API keys not found. Please add them to Streamlit secrets.")
+            st.error("⚠️ API keys not found. Please add them to Streamlit secrets or environment variables.")
             st.stop()
 
         # Initialize Pinecone
@@ -91,7 +176,7 @@ def initialize_chatbot():
 
         # Initialize LLM
         llm = ChatGoogleGenerativeAI(
-            model="gemini-3-flash-preview",
+            model="gemini-1.5-flash",
             temperature=0.1,
             max_tokens=1024,
             api_key=google_key,
@@ -166,9 +251,9 @@ with st.sidebar:
     - **Pinecone** for knowledge retrieval
 
     💡 **Tips:**
-    - Ask questions about stress, anxiety, depression
-    - The AI remembers your conversation context
-    - This is not a replacement for professional help
+    - Ask questions about stress, anxiety, or coping strategies.
+    - The AI remembers your conversation context.
+    - This is not a replacement for professional medical advice.
     """)
 
     st.divider()
@@ -180,7 +265,7 @@ with st.sidebar:
 
     st.divider()
 
-    st.caption("⚠️ **Disclaimer:** This is an AI assistant. For emergencies, contact professional help immediately.")
+    st.caption("⚠️ **Disclaimer:** This is an AI assistant. For emergencies, please contact a local crisis hotline or mental health professional immediately.")
 
 # Display chat messages
 for message in st.session_state.messages:
@@ -189,7 +274,6 @@ for message in st.session_state.messages:
 
 # Chat input
 if prompt := st.chat_input("How can I help you today?"):
-    # Check if chatbot is initialized
     if st.session_state.rag_chain is None:
         st.error("⚠️ Chatbot not initialized. Please check your API keys.")
         st.stop()
