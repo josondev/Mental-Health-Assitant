@@ -9,7 +9,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_pinecone import PineconeVectorStore
 
-# 1. Page config MUST be the first Streamlit command
+# Page config
 st.set_page_config(
     page_title="Mental Health Assistant",
     page_icon="🧠",
@@ -19,9 +19,6 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* Remove default padding and set background */
-    .stApp {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   /* App background */
   .stApp {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -45,11 +42,6 @@ st.markdown("""
     div[data-testid="stChatMessage"]{
       background: #0b0b0b !important;
     }
-    
-    /* Target the main content block */
-    section.main > div {
-        max-width: 100%;
-        padding: 1rem;
 
     /* Target the actual rendered text inside chat messages */
     div[data-testid="stChatMessageContent"],
@@ -66,13 +58,7 @@ st.markdown("""
     div[data-testid="stChatMessage"]{
       background: #ffffff !important;
     }
-    @media (prefers-color-scheme: dark) {
-  .stChatMessage { background: #0b0b0b; color: #f7fafc; }
-}
 
-@media (prefers-color-scheme: light) {
-  .stChatMessage { background: #ffffff; color: #111827; }
-}
     div[data-testid="stChatMessageContent"],
     div[data-testid="stChatMessageContent"] p,
     div[data-testid="stChatMessageContent"] li,
@@ -82,15 +68,6 @@ st.markdown("""
     }
   }
 </style>
-""",unsafe_allow_html = True)
-""", unsafe_allow_html=True)
-  
-# 3. Render Custom Centered Hero Header
-st.markdown("""
-<div class="custom-header">
-    <h1>🧠 Mental Health Assistant</h1>
-    <p>Your compassionate AI companion for mental health support</p>
-</div>
 """, unsafe_allow_html=True)
 
 # Initialize session state
@@ -105,14 +82,14 @@ if "chat_history" not in st.session_state:
 def initialize_chatbot():
     """Initialize the RAG chatbot (cached to avoid reloading)"""
     try:
-        # Get API keys from Streamlit secrets or env vars
+        # Get API keys from Streamlit secrets
         pinecone_key = st.secrets.get("PINECONE_API_KEY", os.getenv("PINECONE_API_KEY"))
         google_key = st.secrets.get("GOOGLE_API_KEY", os.getenv("GOOGLE_API_KEY"))
         pinecone_cloud = st.secrets.get("PINECONE_CLOUD", os.getenv("PINECONE_CLOUD", "aws"))
         pinecone_region = st.secrets.get("PINECONE_REGION", os.getenv("PINECONE_REGION", "us-east-1"))
 
         if not pinecone_key or not google_key:
-            st.error("⚠️ API keys not found. Please add them to Streamlit secrets or environment variables.")
+            st.error("⚠️ API keys not found. Please add them to Streamlit secrets.")
             st.stop()
 
         # Initialize Pinecone
@@ -146,7 +123,7 @@ def initialize_chatbot():
 
         # Initialize LLM
         llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             temperature=0.1,
             max_tokens=1024,
             api_key=google_key,
@@ -207,6 +184,10 @@ if st.session_state.rag_chain is None:
     with st.spinner("🔄 Loading AI assistant..."):
         st.session_state.rag_chain = initialize_chatbot()
 
+# Header
+st.title("🧠 Mental Health Assistant")
+st.caption("Your compassionate AI companion for mental health support")
+
 # Sidebar
 with st.sidebar:
     st.header("ℹ️ About")
@@ -217,9 +198,9 @@ with st.sidebar:
     - **Pinecone** for knowledge retrieval
 
     💡 **Tips:**
-    - Ask questions about stress, anxiety, or coping strategies.
-    - The AI remembers your conversation context.
-    - This is not a replacement for professional medical advice.
+    - Ask questions about stress, anxiety, depression
+    - The AI remembers your conversation context
+    - This is not a replacement for professional help
     """)
 
     st.divider()
@@ -231,7 +212,7 @@ with st.sidebar:
 
     st.divider()
 
-    st.caption("⚠️ **Disclaimer:** This is an AI assistant. For emergencies, please contact a local crisis hotline or mental health professional immediately.")
+    st.caption("⚠️ **Disclaimer:** This is an AI assistant. For emergencies, contact professional help immediately.")
 
 # Display chat messages
 for message in st.session_state.messages:
@@ -240,6 +221,7 @@ for message in st.session_state.messages:
 
 # Chat input
 if prompt := st.chat_input("How can I help you today?"):
+    # Check if chatbot is initialized
     if st.session_state.rag_chain is None:
         st.error("⚠️ Chatbot not initialized. Please check your API keys.")
         st.stop()
