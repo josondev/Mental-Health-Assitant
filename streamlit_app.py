@@ -17,100 +17,57 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# 2. Custom CSS Block
 st.markdown("""
 <style>
-/* 1. Global Background */
-.stApp { 
-    background: radial-gradient(circle at 10% 0%, #1d4ed8 0, transparent 40%), 
-                radial-gradient(circle at 90% 10%, #7c3aed 0, transparent 35%), 
-                #080b14 !important; 
-}
+  /* App background */
+  .stApp {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
 
-/* 2. Target ALL Streamlit container variations to force center alignment & top spacing */
-.main .block-container,
-[data-testid="stMainBlockContainer"],
-.stMainBlockContainer { 
-    max-width: 850px !important; 
-    padding-top: 5rem !important;
-    padding-bottom: 6rem !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
+  section.main > div {
+    max-width: 100%;
+    padding: 1rem;
+  }
 
-/* 3. Ensure the app layout centers content cleanly */
-[data-testid="stAppViewContainer"] > .main {
-    display: flex !important;
-    justify-content: center !important;
-}
+  /* Base chat message box styling (common) */
+  div[data-testid="stChatMessage"]{
+    border-radius: 10px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+  }
 
-/* 4. Custom Header Card Styling */
-.custom-header {
-    text-align: center !important;
-    padding: 2.5rem 2rem !important;
-    margin: 0 auto 2.5rem auto !important;
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(124, 58, 237, 0.2)) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    border-radius: 20px !important;
-    backdrop-filter: blur(12px) !important;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35) !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
+  /* DARK MODE */
+  @media (prefers-color-scheme: dark) {
+    div[data-testid="stChatMessage"]{
+      background: #0b0b0b !important;
+    }
 
-.custom-header h1 {
-    color: #ffffff !important;
-    font-size: 2.3rem !important;
-    font-weight: 700 !important;
-    margin: 0 0 0.6rem 0 !important;
-    padding: 0 !important;
-    letter-spacing: -0.02em !important;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.4) !important;
-}
+    /* Target the actual rendered text inside chat messages */
+    div[data-testid="stChatMessageContent"],
+    div[data-testid="stChatMessageContent"] p,
+    div[data-testid="stChatMessageContent"] li,
+    div[data-testid="stChatMessageContent"] span,
+    div[data-testid="stChatMessageContent"] div{
+      color: #f7fafc !important;
+    }
+  }
 
-.custom-header p {
-    color: #cbd5e1 !important;
-    font-size: 1.05rem !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
+  /* LIGHT MODE */
+  @media (prefers-color-scheme: light) {
+    div[data-testid="stChatMessage"]{
+      background: #ffffff !important;
+    }
 
-/* 5. Chat Messages Styling */
-div[data-testid="stChatMessage"] { 
-    border: 1px solid rgba(255, 255, 255, 0.12) !important; 
-    border-radius: 16px !important; 
-    padding: 1.2rem 1.4rem !important; 
-    margin: 1rem 0 !important; 
-    background: rgba(15, 23, 42, 0.85) !important; 
-    backdrop-filter: blur(8px) !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important; 
-}
-
-div[data-testid="stChatMessageContent"] { 
-    color: #f8fafc !important; 
-    font-size: 1rem !important;
-    line-height: 1.6 !important;
-}
-
-/* 6. Chat Input Styling */
-div[data-testid="stChatInput"] textarea {
-    color: #ffffff !important;
-    background-color: rgba(15, 23, 42, 0.9) !important;
-}
-
-/* 7. Sidebar text color fix */
-section[data-testid="stSidebar"] { 
-    background: rgba(8, 11, 20, 0.96) !important; 
-    border-right: 1px solid rgba(255, 255, 255, 0.1) !important; 
-}
-
-section[data-testid="stSidebar"] p, 
-section[data-testid="stSidebar"] li {
-    color: #cbd5e1 !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
+    div[data-testid="stChatMessageContent"],
+    div[data-testid="stChatMessageContent"] p,
+    div[data-testid="stChatMessageContent"] li,
+    div[data-testid="stChatMessageContent"] span,
+    div[data-testid="stChatMessageContent"] div{
+      color: #111827 !important;
+    }
+  }
+  
 # 3. Render Custom Centered Hero Header
 st.markdown("""
 <div class="custom-header">
