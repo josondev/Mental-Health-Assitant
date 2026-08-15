@@ -13,59 +13,24 @@ from langchain_pinecone import PineconeVectorStore
 st.set_page_config(
     page_title="Mental Health Assistant",
     page_icon="🧠",
-    initial_sidebar_state="collapsed"
+    layout="wide"
 )
 
+# Custom CSS
 st.markdown("""
 <style>
-  /* App background */
-  .stApp {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  }
-
-  section.main > div {
-    max-width: 100%;
-    padding: 1rem;
-  }
-
-  /* Base chat message box styling (common) */
-  div[data-testid="stChatMessage"]{
-    border-radius: 10px;
-    padding: 1rem;
-    margin: 0.5rem 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-  }
-
-  /* DARK MODE */
-  @media (prefers-color-scheme: dark) {
-    div[data-testid="stChatMessage"]{
-      background: #0b0b0b !important;
+    .stApp {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
-
-    /* Target the actual rendered text inside chat messages */
-    div[data-testid="stChatMessageContent"],
-    div[data-testid="stChatMessageContent"] p,
-    div[data-testid="stChatMessageContent"] li,
-    div[data-testid="stChatMessageContent"] span,
-    div[data-testid="stChatMessageContent"] div{
-      color: #f7fafc !important;
+    .main > div {
+        padding-top: 2rem;
     }
-  }
-
-  /* LIGHT MODE */
-  @media (prefers-color-scheme: light) {
-    div[data-testid="stChatMessage"]{
-      background: #ffffff !important;
+    .stChatMessage {
+        background-color: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 0.5rem 0;
     }
-
-    div[data-testid="stChatMessageContent"],
-    div[data-testid="stChatMessageContent"] p,
-    div[data-testid="stChatMessageContent"] li,
-    div[data-testid="stChatMessageContent"] span,
-    div[data-testid="stChatMessageContent"] div{
-      color: #111827 !important;
-    }
-  }
 </style>
 """, unsafe_allow_html=True)
 
@@ -122,7 +87,7 @@ def initialize_chatbot():
 
         # Initialize LLM
         llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model="gemini-2.5-flash-lite",
             temperature=0.1,
             max_tokens=1024,
             api_key=google_key,
