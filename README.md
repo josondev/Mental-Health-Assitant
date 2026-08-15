@@ -105,7 +105,7 @@ This project implements a conversational Retrieval Augmented Generation (RAG) As
 
 2.  **We have a deployed version. Do check it out.**
     ```
-    https://mental-health-01.streamlit.app/
+    https://mental-health-expert.streamlit.app/
     ```    
 
 3. **Alternative: Run the command-line interface After navigating in the correct directory(`app.py`):**
