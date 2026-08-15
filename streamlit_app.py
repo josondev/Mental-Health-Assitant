@@ -19,6 +19,9 @@ st.set_page_config(
 
 st.markdown("""
 <style>
+    /* Remove default padding and set background */
+    .stApp {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   /* App background */
   .stApp {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -42,6 +45,11 @@ st.markdown("""
     div[data-testid="stChatMessage"]{
       background: #0b0b0b !important;
     }
+    
+    /* Target the main content block */
+    section.main > div {
+        max-width: 100%;
+        padding: 1rem;
 
     /* Target the actual rendered text inside chat messages */
     div[data-testid="stChatMessageContent"],
@@ -58,7 +66,13 @@ st.markdown("""
     div[data-testid="stChatMessage"]{
       background: #ffffff !important;
     }
+    @media (prefers-color-scheme: dark) {
+  .stChatMessage { background: #0b0b0b; color: #f7fafc; }
+}
 
+@media (prefers-color-scheme: light) {
+  .stChatMessage { background: #ffffff; color: #111827; }
+}
     div[data-testid="stChatMessageContent"],
     div[data-testid="stChatMessageContent"] p,
     div[data-testid="stChatMessageContent"] li,
@@ -67,6 +81,9 @@ st.markdown("""
       color: #111827 !important;
     }
   }
+</style>
+""",unsafe_allow_html = True)
+""", unsafe_allow_html=True)
   
 # 3. Render Custom Centered Hero Header
 st.markdown("""
